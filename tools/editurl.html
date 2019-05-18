@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+	<title>URL editor</title>
+	<h1>URL editor</h1>
+	Usage: <code>?url=&lt;url&gt;</code>
+	<a href="editurl.html?url=http%3A%2F%2Fexample.com">Example</a>
+	<p id=error></p>
+	URL: <input id="url" oninput="url = new window.URL(this.value); initInputs(this.value)"><br>
+	Protocol: <input id="protocol" oninput="url.protocol=this.value;render()"><br>
+	Host:     <input id=host oninput="url.hostname=this.value;render()"><br>
+	Path: <input id=path oninput="url.pathname=this.value; render()"><br>
+	Params:<br><textarea id=params oninput="parseParams(this.value); render()" rows=20 cols=60></textarea><br>
+	Hash: <input id=hash oninput="url.hash=this.value;render()">
+
+	<hr>
+	<a id=link href="">RESULT</a>
+<script>
+var errorDiv = document.getElementById('error');
+var urlInput = document.getElementById('url');
+var protoInput = document.getElementById('protocol');
+var hostInput = document.getElementById('host');
+var pathInput = document.getElementById('path');
+var paramsInput = document.getElementById('params');
+var hashInput = document.getElementById('hash');
+var link = document.getElementById('link');
+
+var url;
+function parseParams(val){
+	url.search = '';
+	val.split('\n').forEach(function(line){
+		if (!line)
+			return;
+		var x = line.indexOf('=');
+		if (x == -1)
+			url.searchParams.append(line, '')
+		else
+			url.searchParams.append(line.substr(0,x), line.substr(x+1).replace(/\\\\/g, '\\').replace(/\\n/g, '\n'));
+	});
+}
+function render(){
+	link.innerHTML = url;
+	link.href = url.href;
+}
+function initInputs(){
+	protoInput.value = url.protocol;
+	hostInput.value = url.host;
+	pathInput.value = url.pathname;
+	hashInput.value = url.hash;
+	paramsInput.value = '';
+	for(var pair of url.searchParams.entries()) {
+		paramsInput.value += pair[0]+ '='+ pair[1].replace(/\n/gm, '\\n') + '\n';
+	}
+	render();
+}
+
+var urlArg = new URL(window.location).searchParams.get('url');
+if (urlArg){
+	url = new URL(urlArg);
+	initInputs(urlArg);
+	urlInput.value = urlArg;
+} else if (document.referrer) {
+	url  = new URL(document.referrer);
+	initInputs(urlArg);
+	urlInput.value = urlArg;
+} else {
+	outputDiv.innerHTML = 'no URL given'
+}
+</script>
+</html>

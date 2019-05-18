@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<meta charset="utf-8">
+<style>
+html, body { height: 100%; margin: 0; padding: 10px; box-sizing:border-box;}
+body{display: flex; flex-direction: column;}
+#area{flex-grow: 1; padding: 10px; resize: none;}
+</style>
+<title>RegEx substitution</title>
+<h1>RegEx substitution</h1>
+<div>
+	URL parameters: r=regex, f=flags, s=substitution
+	<a href="resub.html?r=dog&f=g&s=food">Example</a><br>
+	Placeholders in substitution can be further processed with e.g. r3 &amp; s3 for $3
+	<a href="editurl.html" id=editurl>Edit URL</a>
+</div>
+
+<textarea id=area autocomplete=off placeholder="Paste your txt" oninput="convert()">
+</textarea>
+<script>
+document.getElementById('editurl').setAttribute('href', 'editurl.html?url=' + encodeURIComponent(location))
+
+var area = document.getElementById('area');
+var url = new URL(location);
+var sub = url.searchParams.get('s');
+function convert(){
+	var re = new RegExp(url.searchParams.get('r'), url.searchParams.get('f'));
+	area.value = area.value.replace(re,  function(match){
+		var groups = [''];
+		var superArgs = arguments;
+		return sub.replace(/\$([1-9]+)/g, function(match, dig){
+			if (dig >= superArgs.length-2)
+				return match;
+			var val = superArgs[parseInt(dig)];
+			console.log(val)
+			var regexes = url.searchParams.getAll('r'+dig);
+			var flags = url.searchParams.getAll('f'+dig);
+			var subs = url.searchParams.getAll('s'+dig);
+			for (var x = 0; x < regexes.length; x++){
+				val = val.replace(new RegExp(regexes[x], flags[x]), subs[x]);
+			}
+			return val;
+		});
+	})
+}
+</script>
+</html>
